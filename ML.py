@@ -3,6 +3,13 @@ import requests
 import os
 import folium
 import gpxpy
+import psycopg2
+
+
+# responce = request.get(ссылка)
+# soup = BeautifulSoup(responce.text, "lxml")
+# with open("index.html", "w", encode = "utf-8") as file:
+#   file.write(responce.prettify())
 
 headers = {
     "User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 YaBrowser/25.12.0.0 Safari/537.36",
@@ -10,6 +17,26 @@ headers = {
 
 url = "https://mosregdata.ru/article/files-walking-routes-mo"
 response = requests.get(url, headers=headers)
+
+config = {
+    'host': 'localhost',
+    'port': 5432,
+    'database': 'routes_db',
+    'user': 'postgres',
+    'password': ''
+}
+
+try:
+    connection = psycopg2.connect()
+    cur = connection.cursor()
+
+    
+
+except Exception as e:
+    pass
+finally:
+    connection.close()
+    cur.close()
 
 download_folder = "downloaded_gpx"
 if not os.path.exists(download_folder):
@@ -27,11 +54,11 @@ else:
 
 div = soup.find("div", class_="col-lg-9 fs-5").find_all("a")
 
-# 🔹 Скачиваем GPX файлы
+# Перебираем ссылки
 for i in div:
     href = i.get("href")
     if href and href.endswith(".gpx"):
-        base_url = "https://mosregdata.ru"
+        base_url = "https://mosregdata.ru" # Из за того, что ссылка относительная нужно дописать это к ссылке, чтобы можно было по ней перейти
         full_url = base_url + href
         filename = os.path.join(download_folder, href.split("/")[-1])
         
@@ -56,7 +83,6 @@ def get_gpx_data(file_path):
     
     if not points:
         return None, None
-    
     lats = [p[0] for p in points]
     lons = [p[1] for p in points]
     
